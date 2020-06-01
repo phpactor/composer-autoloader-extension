@@ -17,6 +17,7 @@ class ComposerAutoloaderExtension implements Extension
 
     const PARAM_AUTOLOADER_PATH = 'composer.autoloader_path';
     const PARAM_AUTOLOAD_DEREGISTER = 'composer.autoload_deregister';
+    const PARAM_COMPOSER_ENABLE = 'composer.enable';
 
     /**
      * {@inheritDoc}
@@ -24,8 +25,14 @@ class ComposerAutoloaderExtension implements Extension
     public function configure(Resolver $resolver)
     {
         $resolver->setDefaults([
+            self::PARAM_COMPOSER_ENABLE => true,
             self::PARAM_AUTOLOADER_PATH => '%project_root%/vendor/autoload.php',
             self::PARAM_AUTOLOAD_DEREGISTER => true,
+        ]);
+        $resolver->setDescriptions([
+            self::PARAM_COMPOSER_ENABLE => 'Include of the projects autoloader to facilitate class location. Note that when including an autoloader code _may_ be executed. This option may be disabled when using the indexer',
+            self::PARAM_AUTOLOADER_PATH => 'Path to project\'s autoloader, can be an array',
+            self::PARAM_AUTOLOAD_DEREGISTER=> 'Immediately de-register the autoloader once it has been included (prevent conflicts with Phpactor\'s autoloader). Some platforms may require this to be disabled',
         ]);
     }
 
@@ -35,6 +42,10 @@ class ComposerAutoloaderExtension implements Extension
     public function load(ContainerBuilder $container)
     {
         $container->register(self::SERVICE_AUTOLOADERS, function (Container $container) {
+            if (!$container->getParameter(self::PARAM_COMPOSER_ENABLE)) {
+                return [];
+            }
+
             $currentAutoloaders = spl_autoload_functions();
             $autoloaders = [];
 

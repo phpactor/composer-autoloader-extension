@@ -3,6 +3,7 @@
     "description": "Composer Autoloader provider",
     "license": "MIT",
     "type": "phpactor-extension",
+    "minimum-stability":"dev",
     "authors": [
         {
             "name": "Daniel Leech",
@@ -10,7 +11,7 @@
         }
     ],
     "require": {
-        "phpactor/container": "^1.2",
+        "phpactor/container": "^1.3.3",
         "phpactor/logging-extension": "~0.2",
         "phpactor/file-path-resolver-extension": "~0.1"
     },
