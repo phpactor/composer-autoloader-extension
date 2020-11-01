@@ -7,8 +7,6 @@ use Psr\Log\LoggerInterface;
 
 class ClassLoaderFactory
 {
-    private static $loader;
-
     /**
      * @var string
      */
