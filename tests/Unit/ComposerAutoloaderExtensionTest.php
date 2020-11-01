@@ -9,7 +9,6 @@ use Phpactor\Extension\Logger\LoggingExtension;
 use Phpactor\Extension\ComposerAutoloader\ComposerAutoloaderExtension;
 use Composer\Autoload\ClassLoader;
 use Phpactor\FilePathResolverExtension\FilePathResolverExtension;
-use RuntimeException;
 
 class ComposerAutoloaderExtensionTest extends TestCase
 {
@@ -50,13 +49,12 @@ class ComposerAutoloaderExtensionTest extends TestCase
         $this->assertCount(0, $autoloaders);
     }
 
-    public function testWhenAutoloaderIsntAutoloader()
+    public function testWarningAutoloaderIsntAutoloader()
     {
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Autoloader is not');
         $autoloaders = $this->create([
             ComposerAutoloaderExtension::PARAM_AUTOLOADER_PATH => __DIR__ . '/not-an-autoloader.php',
         ])->get(ComposerAutoloaderExtension::SERVICE_AUTOLOADERS);
+        $this->assertCount(1, $autoloaders);
     }
 
     public function testMultipleAutoloaders()

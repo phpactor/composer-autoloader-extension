@@ -9,6 +9,8 @@ use Phpactor\Extension\Logger\LoggingExtension;
 use Phpactor\FilePathResolverExtension\FilePathResolverExtension;
 use Phpactor\MapResolver\Resolver;
 use Composer\Autoload\ClassLoader;
+use Phpactor\Extension\ComposerAutoloader\ClassLoaderFactory as PhpactorClassLoader;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
 
 class ComposerAutoloaderExtension implements Extension
@@ -18,6 +20,7 @@ class ComposerAutoloaderExtension implements Extension
     const PARAM_AUTOLOADER_PATH = 'composer.autoloader_path';
     const PARAM_AUTOLOAD_DEREGISTER = 'composer.autoload_deregister';
     const PARAM_COMPOSER_ENABLE = 'composer.enable';
+    const PARAM_CLASS_MAPS_ONLY = 'composer.class_maps_only';
 
     /**
      * {@inheritDoc}
@@ -28,9 +31,11 @@ class ComposerAutoloaderExtension implements Extension
             self::PARAM_COMPOSER_ENABLE => true,
             self::PARAM_AUTOLOADER_PATH => '%project_root%/vendor/autoload.php',
             self::PARAM_AUTOLOAD_DEREGISTER => true,
+            self::PARAM_CLASS_MAPS_ONLY => true
         ]);
         $resolver->setDescriptions([
             self::PARAM_COMPOSER_ENABLE => 'Include of the projects autoloader to facilitate class location. Note that when including an autoloader code _may_ be executed. This option may be disabled when using the indexer',
+            self::PARAM_CLASS_MAPS_ONLY => 'Register the composer class maps only, do not register the autoloader - RECOMMENDED',
             self::PARAM_AUTOLOADER_PATH => 'Path to project\'s autoloader, can be an array',
             self::PARAM_AUTOLOAD_DEREGISTER=> 'Immediately de-register the autoloader once it has been included (prevent conflicts with Phpactor\'s autoloader). Some platforms may require this to be disabled',
         ]);
@@ -46,22 +51,28 @@ class ComposerAutoloaderExtension implements Extension
                 return [];
             }
 
+            $autoloaderPaths = (array) $container->getParameter(self::PARAM_AUTOLOADER_PATH);
+            $autoloaderPaths = array_filter(array_map(function ($path) use ($container) {
+                $path = $container->get(
+                    FilePathResolverExtension::SERVICE_FILE_PATH_RESOLVER
+                )->resolve($path);
+                if (false === file_exists($path)) {
+                    $this->logAutoloaderNotFound($container, $path);
+                    return false;
+                }
+
+                return $path;
+            }, $autoloaderPaths));
+
+            if ($container->getParameter(self::PARAM_CLASS_MAPS_ONLY)) {
+                return $this->classMapsOnly($container->get(LoggingExtension::SERVICE_LOGGER), $autoloaderPaths);
+            }
+
             $currentAutoloaders = spl_autoload_functions();
             $autoloaders = [];
 
-            $autoloaderPaths = (array) $container->getParameter(self::PARAM_AUTOLOADER_PATH);
-            $autoloaderPaths = array_map(function ($path) use ($container) {
-                return $container->get(
-                    FilePathResolverExtension::SERVICE_FILE_PATH_RESOLVER
-                )->resolve($path);
-            }, $autoloaderPaths);
 
             foreach ($autoloaderPaths as $autoloaderPath) {
-                if (false === file_exists($autoloaderPath)) {
-                    $this->logAutoloaderNotFound($container, $autoloaderPath);
-                    continue;
-                }
-
                 $autoloader = require $autoloaderPath;
 
                 if (!$autoloader instanceof ClassLoader) {
@@ -104,5 +115,13 @@ class ComposerAutoloaderExtension implements Extension
         foreach ($currentAutoloaders as $autoloader) {
             spl_autoload_register($autoloader);
         }
+    }
+
+    private function classMapsOnly(LoggerInterface $logger, array $autoloaderPaths): array
+    {
+        return array_map(function (string $autoloadPath) use ($logger): ClassLoader {
+            $composerPath = dirname($autoloadPath) . '/composer';
+            return (new PhpactorClassLoader($composerPath, $logger))->getLoader();
+        }, $autoloaderPaths);
     }
 }
