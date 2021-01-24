@@ -12,7 +12,7 @@ use Phpactor\FilePathResolverExtension\FilePathResolverExtension;
 
 class ComposerAutoloaderExtensionTest extends TestCase
 {
-    public function testProvidesAutoloaders()
+    public function testProvidesAutoloaders(): void
     {
         $autoloaders = $this->create([
         ])->get(ComposerAutoloaderExtension::SERVICE_AUTOLOADERS);
@@ -21,7 +21,7 @@ class ComposerAutoloaderExtensionTest extends TestCase
         $this->assertInstanceOf(ClassLoader::class, $autoloader);
     }
 
-    public function testProvidesAutoloadersNoDeregister()
+    public function testProvidesAutoloadersNoDeregister(): void
     {
         $autoloaders = $this->create([
             ComposerAutoloaderExtension::PARAM_AUTOLOAD_DEREGISTER => false,
@@ -31,7 +31,7 @@ class ComposerAutoloaderExtensionTest extends TestCase
         $this->assertInstanceOf(ClassLoader::class, $autoloader);
     }
 
-    public function testWithCustomProjectRoot()
+    public function testWithCustomProjectRoot(): void
     {
         $autoloaders = $this->create([
         ])->get(ComposerAutoloaderExtension::SERVICE_AUTOLOADERS);
@@ -40,7 +40,7 @@ class ComposerAutoloaderExtensionTest extends TestCase
         $this->assertInstanceOf(ClassLoader::class, $autoloader);
     }
 
-    public function testWarningForNonExistingLoader()
+    public function testWarningForNonExistingLoader(): void
     {
         $autoloaders = $this->create([
             ComposerAutoloaderExtension::PARAM_AUTOLOADER_PATH => 'not-existing.php',
@@ -49,7 +49,7 @@ class ComposerAutoloaderExtensionTest extends TestCase
         $this->assertCount(0, $autoloaders);
     }
 
-    public function testWarningAutoloaderIsntAutoloader()
+    public function testWarningAutoloaderIsntAutoloader(): void
     {
         $autoloaders = $this->create([
             ComposerAutoloaderExtension::PARAM_AUTOLOADER_PATH => __DIR__ . '/not-an-autoloader.php',
@@ -57,7 +57,7 @@ class ComposerAutoloaderExtensionTest extends TestCase
         $this->assertCount(1, $autoloaders);
     }
 
-    public function testMultipleAutoloaders()
+    public function testMultipleAutoloaders(): void
     {
         $autoloaders = $this->create([
             ComposerAutoloaderExtension::PARAM_AUTOLOADER_PATH => [

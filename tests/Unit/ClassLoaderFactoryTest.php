@@ -8,7 +8,7 @@ use Psr\Log\NullLogger;
 
 class ClassLoaderFactoryTest extends TestCase
 {
-    public function testClassLoader()
+    public function testClassLoader(): void
     {
         $logger = new NullLogger();
         $loader = (new ClassLoaderFactory(__DIR__ . '/../../vendor/composer', $logger))->getLoader();

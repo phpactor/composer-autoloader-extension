@@ -25,7 +25,7 @@ class ComposerAutoloaderExtension implements Extension
     /**
      * {@inheritDoc}
      */
-    public function configure(Resolver $resolver)
+    public function configure(Resolver $resolver): void
     {
         $resolver->setDefaults([
             self::PARAM_COMPOSER_ENABLE => true,
@@ -44,7 +44,7 @@ class ComposerAutoloaderExtension implements Extension
     /**
      * {@inheritDoc}
      */
-    public function load(ContainerBuilder $container)
+    public function load(ContainerBuilder $container): void
     {
         $container->register(self::SERVICE_AUTOLOADERS, function (Container $container) {
             if (!$container->getParameter(self::PARAM_COMPOSER_ENABLE)) {
@@ -90,7 +90,7 @@ class ComposerAutoloaderExtension implements Extension
         });
     }
 
-    private function logAutoloaderNotFound(Container $container, $autoloaderPath)
+    private function logAutoloaderNotFound(Container $container, $autoloaderPath): void
     {
         $container->get(LoggingExtension::SERVICE_LOGGER)->warning(
             sprintf(
